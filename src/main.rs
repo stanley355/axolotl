@@ -14,7 +14,9 @@ async fn main() {
     let address = format!("{}:{}", host, port);
     println!("Server running on: {}", address);
 
-    let router = Router::new().nest("/accounts", accounts::router::account_router());
+    let app_state = app_state::AppState::new().await;
+
+    let router = Router::new().nest("/accounts", accounts::router::account_router(app_state));
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
     axum::serve(listener, router).await.unwrap();
 }
