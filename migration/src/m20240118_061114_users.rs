@@ -24,7 +24,7 @@ impl MigrationTrait for Migration {
         // Replace the sample below with your own migration scripts
         // todo!();
 
-        manager
+        let _ = manager
             .create_table(
                 Table::create()
                     .table(Users::Table)
@@ -51,7 +51,7 @@ impl MigrationTrait for Migration {
             .await;
 
         let db = manager.get_connection();
-        db.execute_unprepared(
+        let _ = db.execute_unprepared(
             "
         CREATE OR REPLACE FUNCTION update_updated_at_column()   
         RETURNS TRIGGER AS $$
@@ -62,7 +62,7 @@ impl MigrationTrait for Migration {
         $$ language 'plpgsql';",
         );
 
-        db.execute_unprepared(
+        let _ = db.execute_unprepared(
             "
             CREATE TRIGGER update_users_updated_at
             BEFORE UPDATE ON users 
