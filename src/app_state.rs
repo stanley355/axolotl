@@ -1,3 +1,4 @@
+use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
 
@@ -15,8 +16,11 @@ impl AppState {
 
     async fn connect_db() -> DatabaseConnection {
         let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        Database::connect(db_url)
+        let connection = Database::connect(db_url)
             .await
-            .expect("Database connection failed")
+            .expect("Database connection failed");
+
+        Migrator::up(&connection, None).await?;
+        return connection;
     }
 }
