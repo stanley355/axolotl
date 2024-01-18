@@ -1,4 +1,3 @@
-use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 use std::env;
 
@@ -20,7 +19,6 @@ impl AppState {
             .await
             .expect("Database connection failed");
 
-        Migrator::up(&connection, None).await?;
         return connection;
     }
 }
