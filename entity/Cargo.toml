@@ -11,3 +11,7 @@ path = "src/mod.rs"
 
 [dependencies.sea-orm]
 version = "0.12" # sea-orm version
+
+[dependencies.serde]
+version = "1.0.195"
+features = ["derive"]
