@@ -1,4 +1,4 @@
-use super::req::RegisterPayload;
+use super::{req::RegisterPayload, res::RegisterResponse};
 use crate::app_state::AppState;
 
 use axum::{extract::State, http::StatusCode, Json};
@@ -6,7 +6,7 @@ use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
 use sea_orm::{ActiveValue, EntityTrait};
 
-type RegisterUserResult = Result<(StatusCode, Json<users::Model>), (StatusCode, String)>;
+type RegisterUserResult = Result<(StatusCode, Json<RegisterResponse>), (StatusCode, String)>;
 
 pub async fn register_user(
     state: State<AppState>,
@@ -27,7 +27,10 @@ pub async fn register_user(
         .await;
 
     match insert_res {
-        Ok(user_model) => Ok((StatusCode::CREATED, Json(user_model))),
+        Ok(user_model) => {
+          let register_response = RegisterResponse::new(user_model);
+          Ok((StatusCode::CREATED, Json(register_response)))
+        },
         Err(db_error) => Err((StatusCode::BAD_REQUEST, db_error.to_string())),
     }
 }
