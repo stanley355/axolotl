@@ -1,13 +1,15 @@
 use super::{req::RegisterPayload, res::RegisterResponse};
-use crate::{app_state::AppState, error_res::ErrorResponse};
+use crate::{
+    app_state::AppState,
+    error_res::{ErrorPayload, ErrorResponse},
+};
 
 use axum::{extract::State, http::StatusCode, Json};
 use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
-type RegisterUserResult =
-    Result<(StatusCode, Json<RegisterResponse>), (StatusCode, Json<ErrorResponse>)>;
+type RegisterUserResult = Result<(StatusCode, Json<RegisterResponse>), ErrorResponse>;
 
 pub async fn register_user(
     state: State<AppState>,
@@ -27,13 +29,13 @@ pub async fn register_user(
     match find_result {
         Ok(model_option) => match model_option {
             Some(_) => {
-                let error = ErrorResponse::new_bad_request("Pengguna sudah terdaftar".to_string());
+                let error = ErrorPayload::new_bad_request("Pengguna sudah terdaftar".to_string());
                 Err((StatusCode::BAD_REQUEST, Json(error)))
             }
             None => insert_register_user(body, &state.db_connection).await,
         },
         Err(find_error) => {
-            let error = ErrorResponse::new_bad_request(find_error.to_string());
+            let error = ErrorPayload::new_bad_request(find_error.to_string());
             Err((StatusCode::BAD_REQUEST, Json(error)))
         }
     }
@@ -63,7 +65,7 @@ pub async fn insert_register_user(
             Ok((StatusCode::CREATED, Json(register_response)))
         }
         Err(insert_error) => {
-            let error = ErrorResponse::new_bad_request(insert_error.to_string());
+            let error = ErrorPayload::new_bad_request(insert_error.to_string());
             Err((StatusCode::BAD_REQUEST, Json(error)))
         }
     }
