@@ -3,13 +3,13 @@ use std::env;
 
 #[derive(Clone)]
 pub struct AppState {
-    pub db_conection: DatabaseConnection,
+    pub db_connection: DatabaseConnection,
 }
 
 impl AppState {
     pub async fn new() -> Self {
         AppState {
-            db_conection: Self::connect_db().await,
+            db_connection: Self::connect_db().await,
         }
     }
 
