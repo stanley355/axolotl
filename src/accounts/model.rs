@@ -2,6 +2,7 @@ use super::req::RegisterPayload;
 use crate::app_state::AppState;
 
 use axum::{extract::State, http::StatusCode, Json};
+use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
 use sea_orm::{ActiveValue, EntityTrait};
 
@@ -11,11 +12,13 @@ pub async fn register_user(
     state: State<AppState>,
     Json(body): Json<RegisterPayload>,
 ) -> RegisterUserResult {
+    let clean_phone_number = body.phone_number.trim_start_matches("0");
+    let hash_password = hash(body.password, DEFAULT_COST).unwrap();
     let new_user = users::ActiveModel {
         fullname: ActiveValue::Set(body.fullname),
-        phone_number: ActiveValue::Set(body.phone_number),
+        phone_number: ActiveValue::Set(clean_phone_number.to_string()),
         email: ActiveValue::Set(body.email),
-        password: ActiveValue::Set(body.password),
+        password: ActiveValue::Set(hash_password),
         ..Default::default()
     };
 
