@@ -1,32 +1,26 @@
-use crate::app_state::AppState;
-use axum::{extract::State, Json};
-use entity::users;
-use sea_orm::{ActiveModelTrait, ActiveValue, EntityTrait};
+use crate::{api_response::ApiResponse, app_state::AppState};
+use axum::{extract::State, http::StatusCode, Json};
+use entity::users::{self, Model};
+use sea_orm::{ActiveModelTrait, ActiveValue, DbErr, EntityTrait};
+use serde::Deserialize;
 
 use super::req::RegisterPayload;
 
 pub async fn register_user(
     state: State<AppState>,
     Json(body): Json<RegisterPayload>,
-) -> Json<()> {
+) -> (StatusCode, Json<Model>) {
     let new_user = users::ActiveModel {
-      id: ActiveValue::NotSet,
-        fullname: ActiveValue::default(),
+        fullname: ActiveValue::NotSet,
         phone_number: ActiveValue::Set(body.phone_number),
         email: ActiveValue::Set(body.email),
         password: ActiveValue::Set(body.password),
-        created_at: ActiveValue::default(),
-        updated_at: ActiveValue::default()
+        ..Default::default()
     };
 
+    let res: Result<users::Model, sea_orm::prelude::DbErr> = users::Entity::insert(new_user)
+        .exec_with_returning(&state.db_conection)
+        .await;
 
-    let res = users::Entity::insert(new_user).exec(&state.db_conection).await;
-
-    println!("{:?}", res.unwrap());
-    // match res {
-    //    Ok(insert_result) => Json(insert_result),
-    //    Err(_) => Json() 
-    // }
-
-    Json(())
+    (StatusCode::BAD_GATEWAY, Json(res.unwrap()))
 }
