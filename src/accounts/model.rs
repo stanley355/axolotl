@@ -1,10 +1,9 @@
-use crate::{api_response::ApiResponse, app_state::AppState};
+use super::req::RegisterPayload;
+use crate::app_state::AppState;
+
 use axum::{extract::State, http::StatusCode, Json};
 use entity::users::{self, Model};
-use sea_orm::{ActiveModelTrait, ActiveValue, DbErr, EntityTrait};
-use serde::Deserialize;
-
-use super::req::RegisterPayload;
+use sea_orm::{ActiveValue, EntityTrait};
 
 pub async fn register_user(
     state: State<AppState>,
