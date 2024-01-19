@@ -4,6 +4,7 @@ use std::env;
 
 mod accounts;
 mod app_state;
+mod error_res;
 
 #[tokio::main]
 async fn main() {

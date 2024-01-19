@@ -1,12 +1,13 @@
 use super::{req::RegisterPayload, res::RegisterResponse};
-use crate::app_state::AppState;
+use crate::{app_state::AppState, error_res::ErrorResponse};
 
 use axum::{extract::State, http::StatusCode, Json};
 use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
-type RegisterUserResult = Result<(StatusCode, Json<RegisterResponse>), (StatusCode, String)>;
+type RegisterUserResult =
+    Result<(StatusCode, Json<RegisterResponse>), (StatusCode, Json<ErrorResponse>)>;
 
 pub async fn register_user(
     state: State<AppState>,
@@ -25,14 +26,20 @@ pub async fn register_user(
 
     match find_result {
         Ok(model_option) => match model_option {
-            Some(_) => Err((StatusCode::BAD_REQUEST, "user udah ada".to_string())),
-            None => insert_user(body, &state.db_connection).await,
+            Some(_) => {
+                let error = ErrorResponse::new_bad_request("Pengguna sudah terdaftar".to_string());
+                Err((StatusCode::BAD_REQUEST, Json(error)))
+            }
+            None => insert_register_user(body, &state.db_connection).await,
         },
-        Err(find_error) => Err((StatusCode::BAD_REQUEST, find_error.to_string())),
+        Err(find_error) => {
+            let error = ErrorResponse::new_bad_request(find_error.to_string());
+            Err((StatusCode::BAD_REQUEST, Json(error)))
+        }
     }
 }
 
-pub async fn insert_user(
+pub async fn insert_register_user(
     body: RegisterPayload,
     db_connection: &DatabaseConnection,
 ) -> RegisterUserResult {
@@ -55,6 +62,9 @@ pub async fn insert_user(
             let register_response = RegisterResponse::new(user_model);
             Ok((StatusCode::CREATED, Json(register_response)))
         }
-        Err(db_error) => Err((StatusCode::BAD_REQUEST, db_error.to_string())),
+        Err(insert_error) => {
+            let error = ErrorResponse::new_bad_request(insert_error.to_string());
+            Err((StatusCode::BAD_REQUEST, Json(error)))
+        }
     }
 }
