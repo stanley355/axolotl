@@ -29,7 +29,13 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Users::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Users::Id).uuid().not_null().primary_key())
+                    .col(
+                        ColumnDef::new(Users::Id)
+                            .uuid()
+                            .default(PgFunc::gen_random_uuid())
+                            .not_null()
+                            .primary_key(),
+                    )
                     .col(ColumnDef::new(Users::Fullname).string().not_null())
                     .col(
                         ColumnDef::new(Users::CreatedAt)
