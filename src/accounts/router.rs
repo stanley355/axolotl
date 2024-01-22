@@ -1,7 +1,6 @@
+use super::model::register_user;
 use crate::app_state::AppState;
 use axum::{routing::post, Router};
-
-use super::model::register_user;
 
 pub fn account_router(state: AppState) -> Router {
     Router::new()
