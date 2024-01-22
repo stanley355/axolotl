@@ -1,22 +1,13 @@
-use super::{req::RegisterPayload, res::LoginRegisterResponseBody};
 use crate::{
+    accounts::{req::RegisterPayload, res::LoginRegisterResponseBody},
     app_state::AppState,
     error_res::{ErrorPayload, ErrorResponse},
 };
 
 use axum::{extract::State, http::StatusCode, Json};
-use bcrypt::{hash, verify, DEFAULT_COST};
+use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
-use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserTokenPayload {
-    pub id: String,
-    pub fullname: String,
-    pub email: String,
-    pub phone_number: String,
-}
+use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 
 type RegisterUserResponse = Result<(StatusCode, Json<LoginRegisterResponseBody>), ErrorResponse>;
 
@@ -75,53 +66,6 @@ pub async fn insert_register_user(
         }
         Err(insert_error) => {
             let error = ErrorPayload::new_bad_request(insert_error.to_string());
-            Err((StatusCode::BAD_REQUEST, Json(error)))
-        }
-    }
-}
-
-type LoginUserResponse = Result<(StatusCode, Json<LoginRegisterResponseBody>), ErrorResponse>;
-
-pub async fn login_user(
-    state: State<AppState>,
-    Json(body): Json<RegisterPayload>,
-) -> LoginUserResponse {
-    let clean_phone_number = body.phone_number.trim_start_matches("0");
-
-    let find_result = users::Entity::find()
-        .filter(
-            users::Column::PhoneNumber
-                .eq(clean_phone_number)
-                .or(users::Column::Email.eq(&body.email)),
-        )
-        .one(&state.db_connection)
-        .await;
-
-    match find_result {
-        Ok(model_option) => match model_option {
-            Some(user_model) => {
-                let password_valid = verify(body.password, &user_model.password).unwrap();
-
-                match password_valid {
-                    true => {
-                        let login_response = LoginRegisterResponseBody::new(user_model);
-
-                        Ok((StatusCode::ACCEPTED, Json(login_response)))
-                    }
-                    false => {
-                        let error =
-                            ErrorPayload::new_bad_request("Pengguna sudah terdaftar".to_string());
-                        Err((StatusCode::BAD_REQUEST, Json(error)))
-                    }
-                }
-            }
-            None => {
-                let error = ErrorPayload::new_bad_request("Pengguna sudah terdaftar".to_string());
-                Err((StatusCode::BAD_REQUEST, Json(error)))
-            }
-        },
-        Err(db_error) => {
-            let error = ErrorPayload::new_server_error(db_error.to_string());
             Err((StatusCode::BAD_REQUEST, Json(error)))
         }
     }

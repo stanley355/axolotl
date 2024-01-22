@@ -1,4 +1,5 @@
-use super::model::{login_user, register_user};
+use super::login::login_user;
+use super::register::register_user;
 use crate::app_state::AppState;
 use axum::{routing::post, Router};
 

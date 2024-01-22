@@ -1,7 +1,15 @@
-use super::model::UserTokenPayload;
 use entity::users;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserTokenPayload {
+    pub id: String,
+    pub fullname: String,
+    pub email: String,
+    pub phone_number: String,
+}
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct LoginRegisterResponseBody {
