@@ -4,11 +4,11 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct LoginRegisterResponse {
+pub struct LoginRegisterResponseBody {
     token: String,
 }
 
-impl LoginRegisterResponse {
+impl LoginRegisterResponseBody {
     pub fn new(user_model: users::Model) -> Self {
         let token_payload = UserTokenPayload {
             id: user_model.id.to_string(),
@@ -17,7 +17,7 @@ impl LoginRegisterResponse {
             phone_number: user_model.phone_number,
         };
 
-        LoginRegisterResponse {
+        LoginRegisterResponseBody {
             token: Self::tokenize(token_payload),
         }
     }

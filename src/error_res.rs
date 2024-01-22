@@ -14,6 +14,13 @@ impl ErrorPayload {
       message
     }
   }
+
+  pub fn new_server_error(message: String) -> Self {
+    ErrorPayload {
+      status: StatusCode::INTERNAL_SERVER_ERROR.as_u16(),
+      message
+    }
+  }
 }
 
 pub type ErrorResponse = (StatusCode, Json<ErrorPayload>);
