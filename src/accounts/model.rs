@@ -1,4 +1,4 @@
-use super::{req::RegisterPayload, res::RegisterResponse};
+use super::{req::RegisterPayload, res::LoginRegisterResponse};
 use crate::{
     app_state::AppState,
     error_res::{ErrorPayload, ErrorResponse},
@@ -8,13 +8,22 @@ use axum::{extract::State, http::StatusCode, Json};
 use bcrypt::{hash, DEFAULT_COST};
 use entity::users;
 use sea_orm::{ActiveValue, ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use serde::{Serialize, Deserialize};
 
-type RegisterUserResult = Result<(StatusCode, Json<RegisterResponse>), ErrorResponse>;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserTokenPayload {
+    pub id: String,
+    pub fullname: String,
+    pub email: String,
+    pub phone_number: String,
+}
+
+type RegisterUserResponse = Result<(StatusCode, Json<LoginRegisterResponse>), ErrorResponse>;
 
 pub async fn register_user(
     state: State<AppState>,
     Json(body): Json<RegisterPayload>,
-) -> RegisterUserResult {
+) -> RegisterUserResponse {
     let clean_phone_number = body.phone_number.trim_start_matches("0");
 
     let find_result = users::Entity::find()
@@ -44,7 +53,7 @@ pub async fn register_user(
 pub async fn insert_register_user(
     body: RegisterPayload,
     db_connection: &DatabaseConnection,
-) -> RegisterUserResult {
+) -> RegisterUserResponse {
     let clean_phone_number = body.phone_number.trim_start_matches("0");
     let hash_password = hash(body.password, DEFAULT_COST).unwrap();
     let new_user = users::ActiveModel {
@@ -61,7 +70,7 @@ pub async fn insert_register_user(
 
     match insert_res {
         Ok(user_model) => {
-            let register_response = RegisterResponse::new(user_model);
+            let register_response = LoginRegisterResponse::new(user_model);
             Ok((StatusCode::CREATED, Json(register_response)))
         }
         Err(insert_error) => {
