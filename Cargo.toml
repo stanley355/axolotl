@@ -15,6 +15,7 @@ migration = {path = "migration"}
 serde = { version = "1.0.195", features = ["derive"] }
 sea-orm = { version = "0.12", features = [ "sqlx-postgres", "runtime-tokio-native-tls", "macros" ] }
 tokio = { version = "1.35.1", features = ["full"] }
+regex = "1.10.3"
 
 [workspace]
 members = ["entity", "migration"]
